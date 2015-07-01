@@ -23,29 +23,24 @@
  */
 package hudson.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.thoughtworks.xstream.XStreamException;
 import hudson.XmlFile;
 import hudson.model.Result;
 import hudson.model.Run;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.thoughtworks.xstream.XStreamException;
+import org.jvnet.hudson.test.Issue;
 
 /**
  * Tests for XML serialization of java objects.
@@ -59,9 +54,9 @@ public class XStream2Test {
 
     @Test
     public void marshalValue() {
-        final Foo f = new Foo();
+        Foo f = new Foo();
         f.r1 = f.r2 = Result.FAILURE;
-        final String xml = Run.XSTREAM.toXML(f);
+        String xml = Run.XSTREAM.toXML(f);
         // we should find two "FAILURE"s as they should be written out twice
         assertEquals(xml, 3, xml.split("FAILURE").length);
     }
@@ -75,7 +70,7 @@ public class XStream2Test {
      */
     @Test
     public void xStream11Compatibility() {
-        final Bar b = (Bar)new XStream2().fromXML(
+        Bar b = (Bar)new XStream2().fromXML(
                 "<hudson.util.XStream2Test-Bar><s>foo</s></hudson.util.XStream2Test-Bar>");
         assertEquals("foo", b.s);
     }
@@ -92,11 +87,11 @@ public class XStream2Test {
     @Issue("HUDSON-5768")
     @Test
     public void xmlRoundTrip() {
-        final XStream2 xs = new XStream2();
-        final __Foo_Bar$Class b = new __Foo_Bar$Class();
+        XStream2 xs = new XStream2();
+        __Foo_Bar$Class b = new __Foo_Bar$Class();
 
-        final String xml = xs.toXML(b);
-        final __Foo_Bar$Class b2 = (__Foo_Bar$Class)xs.fromXML(xml);
+        String xml = xs.toXML(b);
+        __Foo_Bar$Class b2 = (__Foo_Bar$Class)xs.fromXML(xml);
 
         assertEquals(xml, b.under_1, b2.under_1);
         assertEquals(xml, b.under__2, b2.under__2);
@@ -118,13 +113,13 @@ public class XStream2Test {
     @Issue("HUDSON-5769")
     @Test
     public void unmarshalThrowableMissingField() {
-        final Level oldLevel = disableLogging();
+        Level oldLevel = disableLogging();
 
         Baz baz = new Baz();
         baz.myFailure = new Exception("foo");
 
-        final XStream2 xs = new XStream2();
-        final String xml = xs.toXML(baz);
+        XStream2 xs = new XStream2();
+        String xml = xs.toXML(baz);
         baz = (Baz)xs.fromXML(xml);
         assertEquals("foo", baz.myFailure.getMessage());
 
@@ -142,12 +137,12 @@ public class XStream2Test {
     }
 
     private Level disableLogging() {
-        final Level oldLevel = Logger.getLogger(RobustReflectionConverter.class.getName()).getLevel();
+        Level oldLevel = Logger.getLogger(RobustReflectionConverter.class.getName()).getLevel();
         Logger.getLogger(RobustReflectionConverter.class.getName()).setLevel(Level.OFF);
         return oldLevel;
     }
 
-    private void enableLogging(final Level oldLevel) {
+    private void enableLogging(Level oldLevel) {
         Logger.getLogger(RobustReflectionConverter.class.getName()).setLevel(oldLevel);
     }
 
@@ -161,7 +156,7 @@ public class XStream2Test {
 
     @Test
     public void immutableMap() {
-        final XStream2 xs = new XStream2();
+        XStream2 xs = new XStream2();
 
         roundtripImmutableMap(xs, ImmutableMap.of());
         roundtripImmutableMap(xs, ImmutableMap.of("abc", "xyz"));
@@ -175,10 +170,10 @@ public class XStream2Test {
     /**
      * Since the field type is {@link ImmutableMap}, XML shouldn't contain a reference to the type name.
      */
-    private void roundtripImmutableMap(final XStream2 xs, final ImmutableMap<?,?> m) {
+    private void roundtripImmutableMap(XStream2 xs, ImmutableMap<?,?> m) {
         ImmutableMapHolder a = new ImmutableMapHolder();
         a.m = m;
-        final String xml = xs.toXML(a);
+        String xml = xs.toXML(a);
         //System.out.println(xml);
         assertFalse("shouldn't contain the class name",xml.contains("google"));
         assertFalse("shouldn't contain the class name",xml.contains("class"));
@@ -188,10 +183,10 @@ public class XStream2Test {
         assertEquals(m,a.m);
     }
 
-    private void roundtripImmutableMapAsPlainMap(final XStream2 xs, final ImmutableMap<?,?> m) {
+    private void roundtripImmutableMapAsPlainMap(XStream2 xs, ImmutableMap<?,?> m) {
         MapHolder a = new MapHolder();
         a.m = m;
-        final String xml = xs.toXML(a);
+        String xml = xs.toXML(a);
         //System.out.println(xml);
         assertTrue("XML should mention the class name",xml.contains('\"'+ImmutableMap.class.getName()+'\"'));
         a = (MapHolder)xs.fromXML(xml);
@@ -210,7 +205,7 @@ public class XStream2Test {
 
     @Test
     public void immutableList() {
-        final XStream2 xs = new XStream2();
+        XStream2 xs = new XStream2();
 
         roundtripImmutableList(xs, ImmutableList.of());
         roundtripImmutableList(xs, ImmutableList.of("abc"));
@@ -224,10 +219,10 @@ public class XStream2Test {
     /**
      * Since the field type is {@link ImmutableList}, XML shouldn't contain a reference to the type name.
      */
-    private void roundtripImmutableList(final XStream2 xs, final ImmutableList<?> l) {
+    private void roundtripImmutableList(XStream2 xs, ImmutableList<?> l) {
         ImmutableListHolder a = new ImmutableListHolder();
         a.l = l;
-        final String xml = xs.toXML(a);
+        String xml = xs.toXML(a);
         //System.out.println(xml);
         assertFalse("shouldn't contain the class name",xml.contains("google"));
         assertFalse("shouldn't contain the class name",xml.contains("class"));
@@ -237,10 +232,10 @@ public class XStream2Test {
         assertEquals(l,a.l);
     }
 
-    private void roundtripImmutableListAsPlainList(final XStream2 xs, final ImmutableList<?> l) {
+    private void roundtripImmutableListAsPlainList(XStream2 xs, ImmutableList<?> l) {
         ListHolder a = new ListHolder();
         a.l = l;
-        final String xml = xs.toXML(a);
+        String xml = xs.toXML(a);
         //System.out.println(xml);
         assertTrue("XML should mention the class name",xml.contains('\"'+ImmutableList.class.getName()+'\"'));
         a = (ListHolder)xs.fromXML(xml);
@@ -259,12 +254,12 @@ public class XStream2Test {
     @Issue("JENKINS-9843")
     @Test
     public void compatibilityAlias() {
-        final XStream2 xs = new XStream2();
+        XStream2 xs = new XStream2();
         xs.addCompatibilityAlias("legacy.Point",Point.class);
-        final Point pt = (Point)xs.fromXML("<legacy.Point><x>1</x><y>2</y></legacy.Point>");
+        Point pt = (Point)xs.fromXML("<legacy.Point><x>1</x><y>2</y></legacy.Point>");
         assertEquals(1,pt.x);
         assertEquals(2,pt.y);
-        final String xml = xs.toXML(pt);
+        String xml = xs.toXML(pt);
         //System.out.println(xml);
         assertFalse("Shouldn't use the alias when writing back",xml.contains("legacy"));
     }
@@ -282,20 +277,19 @@ public class XStream2Test {
      * but still can deserialize to older, verbose format.
      */
     @Test
-    @Ignore
     public void concurrentHashMapSerialization() throws Exception {
-        final Foo2 foo = new Foo2();
+        Foo2 foo = new Foo2();
         foo.m.put("abc","def");
         foo.m.put("ghi","jkl");
-        final File v = File.createTempFile("hashmap", "xml");
+        File v = File.createTempFile("hashmap", "xml");
         try {
             new XmlFile(v).write(foo);
 
             // should serialize like map
-            final String xml = FileUtils.readFileToString(v);
+            String xml = FileUtils.readFileToString(v);
             assertFalse(xml.contains("java.util.concurrent"));
             //System.out.println(xml);
-            final Foo2 deserialized = (Foo2) new XStream2().fromXML(xml);
+            Foo2 deserialized = (Foo2) new XStream2().fromXML(xml);
             assertEquals(2,deserialized.m.size());
             assertEquals("def", deserialized.m.get("abc"));
             assertEquals("jkl", deserialized.m.get("ghi"));
@@ -304,7 +298,7 @@ public class XStream2Test {
         }
 
         // should be able to read in old data just fine
-        final Foo2 map = (Foo2) new XStream2().fromXML(getClass().getResourceAsStream("old-concurrentHashMap.xml"));
+        Foo2 map = (Foo2) new XStream2().fromXML(getClass().getResourceAsStream("old-concurrentHashMap.xml"));
         assertEquals(1,map.m.size());
         assertEquals("def",map.m.get("abc"));
     }
@@ -314,7 +308,7 @@ public class XStream2Test {
     public void dynamicProxyBlocked() {
         try {
             ((Runnable) new XStream2().fromXML("<dynamic-proxy><interface>java.lang.Runnable</interface><handler class='java.beans.EventHandler'><target class='" + Hacked.class.getName() + "'/><action>oops</action></handler></dynamic-proxy>")).run();
-        } catch (final XStreamException x) {
+        } catch (XStreamException x) {
             // good
         }
         assertFalse("should never have run that", Hacked.tripped);
